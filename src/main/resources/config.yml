@@ -3,7 +3,7 @@
 ###########################
 
 # written by mfnalex / JEFF Media GbR
-# updated to 1.21.x by ShermansWorld
+# Community continuation of DoorsReloaded is maintained by Semarina organization.
 
 ###########################
 #       Double doors      #
@@ -24,6 +24,9 @@ check-for-redstone: true
 # When true, players can open-close iron doors and iron trapdoors with right-click.
 # They need the permission "doorsreloaded.irondoors".
 allow-opening-irondoors-with-hands: false
+
+# Automatically closes iron doors and trapdoors after the given amount of seconds (0 to disable).
+autoclose: 0
 
 ###########################
 #         Knocking        #
