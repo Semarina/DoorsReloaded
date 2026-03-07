@@ -1,6 +1,6 @@
 package de.jeff_media.doorsreloaded;
 
-import de.jeff_media.doorsreloaded.commands.ReloadCommand;
+import de.jeff_media.doorsreloaded.commands.DoorsReloadedCommand;
 import de.jeff_media.doorsreloaded.config.Config;
 import de.jeff_media.doorsreloaded.data.PossibleNeighbour;
 import de.jeff_media.doorsreloaded.listeners.DoorListener;
@@ -119,7 +119,9 @@ public class Main extends JavaPlugin {
         }
 
         Bukkit.getPluginManager().registerEvents(new DoorListener(), this);
-        getCommand("doorsreloaded").setExecutor(new ReloadCommand());
+        DoorsReloadedCommand cmd = new DoorsReloadedCommand();
+        getCommand("doorsreloaded").setExecutor(cmd);
+        getCommand("doorsreloaded").setTabCompleter(cmd);
 
         // Check for updates on Modrinth
         de.jeff_media.doorsreloaded.utils.UpdateChecker.checkForUpdates();

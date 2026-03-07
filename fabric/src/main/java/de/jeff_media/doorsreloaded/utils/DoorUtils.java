@@ -20,6 +20,10 @@ public class DoorUtils {
         return state.getBlock() instanceof TrapdoorBlock;
     }
 
+    public static boolean isGate(BlockState state) {
+        return state.isIn(net.minecraft.registry.tag.BlockTags.FENCE_GATES);
+    }
+
     public static BlockPos getOtherDoorPart(World world, BlockPos pos, BlockState state) {
         if (!isDoor(state)) return null;
 

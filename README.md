@@ -27,13 +27,13 @@ Modern door quality-of-life plugin/mod for Minecraft servers.
 ## Installation
 
 ### Paper/Purpur/Folia
-1. Download `DoorsReloaded-X.X.X-Paper.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
+1. Download `DoorsReloaded-2.2.0-Paper.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
 2. Place in your server's `plugins/` folder
 3. Restart the server
 
 ### Fabric/Quilt
 1. Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
-2. Download `DoorsReloaded-X.X.X-Fabric.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
+2. Download `DoorsReloaded-2.2.0-Fabric.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
 3. Place in your `mods/` folder
 4. Launch the game
 
@@ -56,8 +56,8 @@ DoorsReloaded uses Gradle. To build both platform jars:
 ```
 
 Output jars are located in `build/libs/`:
-- `DoorsReloaded-X.X.X-Paper.jar` - For Paper/Purpur/Folia
-- `DoorsReloaded-X.X.X-Fabric.jar` - For Fabric/Quilt
+- `DoorsReloaded-2.2.0-Paper.jar` - For Paper/Purpur/Folia
+- `DoorsReloaded-2.2.0-Fabric.jar` - For Fabric/Quilt
 
 ## Credits
 

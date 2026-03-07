@@ -18,14 +18,25 @@ public class ModConfig {
     public boolean allow_doubledoors = true;
     public boolean check_for_redstone = true;
     public boolean allow_opening_irondoors_with_hands = false;
+    public boolean allow_opening_irontrapdoors_with_hands = false;
     public long autoclose = 0;
-    public boolean allow_knocking = true;
+    public boolean allow_knocking_doors = true;
     public boolean allow_knocking_trapdoors = false;
+    public boolean allow_knocking_gates = false;
     public boolean knocking_requires_empty_hand = false;
     public boolean knocking_requires_shift = false;
-    public String sound_knock_iron = "minecraft:entity.zombie.attack_iron_door";
-    public String sound_knock_copper = "minecraft:entity.zombie.attack_iron_door";
-    public String sound_knock_wood = "minecraft:item.shield.block";
+
+    public String sound_knock_door_iron = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_door_copper = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_door_wood = "minecraft:item.shield.block";
+
+    public String sound_knock_trapdoor_iron = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_trapdoor_copper = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_trapdoor_wood = "minecraft:item.shield.block";
+
+    public String sound_knock_gate_iron = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_gate_copper = "minecraft:entity.zombie.attack_iron_door";
+    public String sound_knock_gate_wood = "minecraft:item.shield.block";
     public double sound_knock_volume = 1.0;
     public double sound_knock_pitch = 1.0;
     public String sound_knock_category = "BLOCKS"; // Added category
@@ -49,15 +60,36 @@ public class ModConfig {
                 INSTANCE.config_version = getInt(props, "config-version", 2);
                 INSTANCE.allow_doubledoors = getBoolean(props, "allow-doubledoors", true);
                 INSTANCE.check_for_redstone = getBoolean(props, "check-for-redstone", true);
-                INSTANCE.allow_opening_irondoors_with_hands = getBoolean(props, "allow-opening-irondoors-with-hands", false);
+                
+                boolean oldOpeningIronDoors = getBoolean(props, "allow-opening-irondoors-with-hands", false);
+                INSTANCE.allow_opening_irondoors_with_hands = getBoolean(props, "allow-opening-irondoors-with-hands", oldOpeningIronDoors);
+                INSTANCE.allow_opening_irontrapdoors_with_hands = getBoolean(props, "allow-opening-irontrapdoors-with-hands", oldOpeningIronDoors);
+                
                 INSTANCE.autoclose = getLong(props, "autoclose", 0L);
-                INSTANCE.allow_knocking = getBoolean(props, "allow-knocking", true);
+                
+                // Fallback for older configs
+                boolean oldAllowKnocking = getBoolean(props, "allow-knocking", true);
+                INSTANCE.allow_knocking_doors = getBoolean(props, "allow-knocking-doors", oldAllowKnocking);
                 INSTANCE.allow_knocking_trapdoors = getBoolean(props, "allow-knocking-trapdoors", false);
+                INSTANCE.allow_knocking_gates = getBoolean(props, "allow-knocking-gates", false);
                 INSTANCE.knocking_requires_empty_hand = getBoolean(props, "knocking-requires-empty-hand", false);
                 INSTANCE.knocking_requires_shift = getBoolean(props, "knocking-requires-shift", false);
-                INSTANCE.sound_knock_iron = props.getProperty("sound-knock-iron", "minecraft:entity.zombie.attack_iron_door");
-                INSTANCE.sound_knock_copper = props.getProperty("sound-knock-copper", "minecraft:entity.zombie.attack_iron_door");
-                INSTANCE.sound_knock_wood = props.getProperty("sound-knock-wood", "minecraft:item.shield.block");
+
+                String oldIron = props.getProperty("sound-knock-iron");
+                String oldCopper = props.getProperty("sound-knock-copper");
+                String oldWood = props.getProperty("sound-knock-wood");
+
+                INSTANCE.sound_knock_door_iron = props.getProperty("sound-knock-door-iron", oldIron != null ? oldIron : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_door_copper = props.getProperty("sound-knock-door-copper", oldCopper != null ? oldCopper : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_door_wood = props.getProperty("sound-knock-door-wood", oldWood != null ? oldWood : "minecraft:item.shield.block");
+
+                INSTANCE.sound_knock_trapdoor_iron = props.getProperty("sound-knock-trapdoor-iron", oldIron != null ? oldIron : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_trapdoor_copper = props.getProperty("sound-knock-trapdoor-copper", oldCopper != null ? oldCopper : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_trapdoor_wood = props.getProperty("sound-knock-trapdoor-wood", oldWood != null ? oldWood : "minecraft:item.shield.block");
+
+                INSTANCE.sound_knock_gate_iron = props.getProperty("sound-knock-gate-iron", oldIron != null ? oldIron : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_gate_copper = props.getProperty("sound-knock-gate-copper", oldCopper != null ? oldCopper : "minecraft:entity.zombie.attack_iron_door");
+                INSTANCE.sound_knock_gate_wood = props.getProperty("sound-knock-gate-wood", oldWood != null ? oldWood : "minecraft:item.shield.block");
                 INSTANCE.sound_knock_volume = getDouble(props, "sound-knock-volume", 1.0);
                 INSTANCE.sound_knock_pitch = getDouble(props, "sound-knock-pitch", 1.0);
                 INSTANCE.sound_knock_category = props.getProperty("sound-knock-category", "BLOCKS");
@@ -109,9 +141,13 @@ public class ModConfig {
         sb.append("#        Iron Doors       #\n");
         sb.append("###########################\n\n");
 
-        sb.append("# When true, players can open-close iron doors and iron trapdoors with right-click.\n");
+        sb.append("# When true, players can open-close iron doors with right-click.\n");
         sb.append("# They need the permission \"doorsreloaded.irondoors\".\n");
         sb.append("allow-opening-irondoors-with-hands=" + INSTANCE.allow_opening_irondoors_with_hands + "\n\n");
+
+        sb.append("# When true, players can open-close iron trapdoors with right-click.\n");
+        sb.append("# They need the permission \"doorsreloaded.irondoors\".\n");
+        sb.append("allow-opening-irontrapdoors-with-hands=" + INSTANCE.allow_opening_irontrapdoors_with_hands + "\n\n");
 
         sb.append("# Automatically closes iron doors and trapdoors after the given amount of seconds (0 to disable).\n");
         sb.append("autoclose=" + INSTANCE.autoclose + "\n\n");
@@ -123,12 +159,17 @@ public class ModConfig {
         sb.append("# When true, players can knock on doors using left-click.\n");
         sb.append("# This only works for players in survival and adventure mode.\n");
         sb.append("# They need the permission \"doorsreloaded.knock\" which is given to all players by default\n");
-        sb.append("allow-knocking=" + INSTANCE.allow_knocking + "\n\n");
+        sb.append("allow-knocking-doors=" + INSTANCE.allow_knocking_doors + "\n\n");
 
         sb.append("# When true, players can knock to trapdoors like normal doors.\n");
         sb.append("# Players still need the permission \"doorsreloaded.knock\" which is given to all players by default\n");
-        sb.append("# If allow-knocking is false, this feature won't work\n");
+        sb.append("# If allow-knocking-doors is false, this feature won't work\n");
         sb.append("allow-knocking-trapdoors=" + INSTANCE.allow_knocking_trapdoors + "\n\n");
+
+        sb.append("# When true, players can knock to fence gates like normal doors.\n");
+        sb.append("# Players still need the permission \"doorsreloaded.knock\" which is given to all players by default\n");
+        sb.append("# If allow-knocking-doors is false, this feature won't work\n");
+        sb.append("allow-knocking-gates=" + INSTANCE.allow_knocking_gates + "\n\n");
 
         sb.append("# When true, players can only knock when their hand is empty.\n");
         sb.append("knocking-requires-empty-hand=" + INSTANCE.knocking_requires_empty_hand + "\n\n");
@@ -136,11 +177,23 @@ public class ModConfig {
         sb.append("# When true, players can only knock while sneaking\n");
         sb.append("knocking-requires-shift=" + INSTANCE.knocking_requires_shift + "\n\n");
 
+        sb.append("###########################\n");
+        sb.append("#     Knocking Sounds     #\n");
+        sb.append("###########################\n\n");
+
         sb.append("# Settings for the knocking sound\n");
         sb.append("# See here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html\n");
-        sb.append("sound-knock-iron=" + INSTANCE.sound_knock_iron + "\n");
-        sb.append("sound-knock-copper=" + INSTANCE.sound_knock_copper + "\n");
-        sb.append("sound-knock-wood=" + INSTANCE.sound_knock_wood + "\n");
+        sb.append("sound-knock-door-iron=" + INSTANCE.sound_knock_door_iron + "\n");
+        sb.append("sound-knock-door-copper=" + INSTANCE.sound_knock_door_copper + "\n");
+        sb.append("sound-knock-door-wood=" + INSTANCE.sound_knock_door_wood + "\n\n");
+
+        sb.append("sound-knock-trapdoor-iron=" + INSTANCE.sound_knock_trapdoor_iron + "\n");
+        sb.append("sound-knock-trapdoor-copper=" + INSTANCE.sound_knock_trapdoor_copper + "\n");
+        sb.append("sound-knock-trapdoor-wood=" + INSTANCE.sound_knock_trapdoor_wood + "\n\n");
+
+        sb.append("sound-knock-gate-iron=" + INSTANCE.sound_knock_gate_iron + "\n");
+        sb.append("sound-knock-gate-copper=" + INSTANCE.sound_knock_gate_copper + "\n");
+        sb.append("sound-knock-gate-wood=" + INSTANCE.sound_knock_gate_wood + "\n");
         sb.append("# A volume of 1.0 means 16 blocks, 2.0 means 32 blocks, etc.\n");
         sb.append("sound-knock-volume=" + INSTANCE.sound_knock_volume + "\n");
         sb.append("sound-knock-pitch=" + INSTANCE.sound_knock_pitch + "\n");

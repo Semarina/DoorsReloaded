@@ -7,7 +7,7 @@ version = project.mod_version
 group = project.maven_group
 
 base {
-	archivesName = project.archives_base_name
+	archivesName = project.archives_base_name + '-Fabric'
 }
 
 repositories {
@@ -51,6 +51,10 @@ jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}
 	}
+}
+
+tasks.withType(net.fabricmc.loom.task.RemapJarTask).configureEach {
+    destinationDirectory.set(file("$rootDir/build/libs"))
 }
 
 // configure the maven publication

@@ -14,6 +14,7 @@ public class DoorsReloadedMod implements ModInitializer {
 		de.jeff_media.doorsreloaded.config.ModConfig.load();
 		de.jeff_media.doorsreloaded.listeners.InteractionListener.register();
 		de.jeff_media.doorsreloaded.scheduler.DoorScheduler.register();
+		de.jeff_media.doorsreloaded.commands.DoorsReloadedCommand.register();
 
 		// Check for updates on Modrinth
 		de.jeff_media.doorsreloaded.utils.UpdateChecker.checkForUpdates();

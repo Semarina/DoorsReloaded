@@ -64,7 +64,13 @@ public class DoorListener implements Listener {
         }
         Block block = event.getClickedBlock();
         if(block.getType() != Material.IRON_DOOR && block.getType() != Material.IRON_TRAPDOOR) return;
-        if(!main.getConfig().getBoolean(Config.ALLOW_IRONDOORS)) return;
+
+        boolean isIronDoor = block.getType() == Material.IRON_DOOR;
+        boolean isIronTrapdoor = block.getType() == Material.IRON_TRAPDOOR;
+        
+        if (isIronDoor && !main.getConfig().getBoolean(Config.ALLOW_IRONDOORS)) return;
+        if (isIronTrapdoor && !main.getConfig().getBoolean(Config.ALLOW_IRONTRAPDOORS)) return;
+
         if(!event.getPlayer().hasPermission(Permissions.IRONDOORS)) return;
         block.getWorld().playEffect(block.getLocation(), Effect.IRON_DOOR_TOGGLE, 0);
         Openable door = (Openable) block.getBlockData();
@@ -131,10 +137,9 @@ public class DoorListener implements Listener {
             //main.debug("No permission");
             return;
         }
-        if(!main.getConfig().getBoolean(Config.ALLOW_KNOCKING)) {
-            //main.debug("Disabled in config");
-            return;
-        }
+        
+        // Remove global check since each block has its own config check down below
+        
         if(event.getAction() != Action.LEFT_CLICK_BLOCK) {
             //main.debug("No left Click Block");
             return;
@@ -161,13 +166,17 @@ public class DoorListener implements Listener {
             return;
         }
 
-        if(block.getBlockData() instanceof Door) {
+        if(block.getBlockData() instanceof Door && main.getConfig().getBoolean(Config.ALLOW_KNOCKING_DOORS)) {
             SoundUtils.playKnockSound(block);
             //main.debug("This is no door");
         }
         else if (block.getBlockData() instanceof TrapDoor && main.getConfig().getBoolean(Config.ALLOW_KNOCKING_TRAPDOORS)) {
             SoundUtils.playKnockSound(block);
             //main.debug("This is not trapdoor");
+        }
+        else if (block.getBlockData() instanceof org.bukkit.block.data.type.Gate && main.getConfig().getBoolean(Config.ALLOW_KNOCKING_GATES)) {
+            SoundUtils.playKnockSound(block);
+            //main.debug("This is not gate");
         }
 
         return;

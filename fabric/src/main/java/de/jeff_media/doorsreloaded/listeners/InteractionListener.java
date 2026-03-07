@@ -47,7 +47,7 @@ public class InteractionListener {
             // Original used Material.IRON_DOOR etc.
 
             if (isIronDoor || isIronTrapdoor) {
-                if (config.allow_opening_irondoors_with_hands) {
+                if ((isIronDoor && config.allow_opening_irondoors_with_hands) || (isIronTrapdoor && config.allow_opening_irontrapdoors_with_hands)) {
                     boolean isOpen = false;
                     if (isIronDoor) isOpen = state.get(DoorBlock.OPEN);
                     else isOpen = state.get(TrapdoorBlock.OPEN);
@@ -106,14 +106,14 @@ public class InteractionListener {
             BlockState state = world.getBlockState(pos);
             ModConfig config = ModConfig.getInstance();
 
-            if (!config.allow_knocking) return ActionResult.PASS;
-
             boolean isDoor = DoorUtils.isDoor(state);
             boolean isTrapDoor = DoorUtils.isTrapDoor(state);
+            boolean isGate = DoorUtils.isGate(state);
 
-            if (!isDoor && (!isTrapDoor || !config.allow_knocking_trapdoors)) {
-                return ActionResult.PASS;
-            }
+            if (!isDoor && !isTrapDoor && !isGate) return ActionResult.PASS;
+            if (isDoor && !config.allow_knocking_doors) return ActionResult.PASS;
+            if (isTrapDoor && !config.allow_knocking_trapdoors) return ActionResult.PASS;
+            if (isGate && !config.allow_knocking_gates) return ActionResult.PASS;
 
             // Checks
             if (config.knocking_requires_shift && !player.isSneaking()) return ActionResult.PASS;
@@ -121,10 +121,22 @@ public class InteractionListener {
 
             // Play Sound
             String soundStr;
-            if (state.isIn(BlockTags.WOODEN_DOORS) || state.isIn(BlockTags.WOODEN_TRAPDOORS)) {
-                 soundStr = config.sound_knock_wood;
+            String name = state.getBlock().getTranslationKey().toLowerCase();
+            boolean isCopper = name.contains("copper");
+            boolean isIron = name.contains("iron") || state.isOf(Blocks.IRON_DOOR) || state.isOf(Blocks.IRON_TRAPDOOR);
+
+            if (isDoor) {
+                if (isCopper) soundStr = config.sound_knock_door_copper;
+                else if (isIron) soundStr = config.sound_knock_door_iron;
+                else soundStr = config.sound_knock_door_wood;
+            } else if (isTrapDoor) {
+                if (isCopper) soundStr = config.sound_knock_trapdoor_copper;
+                else if (isIron) soundStr = config.sound_knock_trapdoor_iron;
+                else soundStr = config.sound_knock_trapdoor_wood;
             } else {
-                 soundStr = config.sound_knock_iron;
+                if (isCopper) soundStr = config.sound_knock_gate_copper;
+                else if (isIron) soundStr = config.sound_knock_gate_iron;
+                else soundStr = config.sound_knock_gate_wood;
             }
             
             Identifier soundId = Identifier.tryParse(soundStr);
