@@ -8,10 +8,10 @@ Modern door quality-of-life plugin/mod for Minecraft servers.
 ## Features
 
 - 🚪 **Double Doors** - Open both doors with a single click
-- 🔔 **Door Knocking** - Left-click to knock on doors
-- 🔐 **Iron Door Access** - Permission-based iron door opening
-- ⏱️ **Auto-Close** - Configurable automatic door closing
-- 🔄 **Redstone Sync** - Double doors sync with redstone signals
+- 🔔 **Knocking** - Left-click to elegantly knock on standard Doors, Trapdoors, and Fence Gates. Configurable independently for each!
+- 🔐 **Access Control** - Permission-based manipulation of Iron Doors and Iron Trapdoors, configured individually.
+- ⏱️ **Auto-Close** - Configurable automatic closing delays.
+- 🔄 **Redstone Sync** - Double doors natively sync with redstone signals.
 
 ## Supported Platforms
 
