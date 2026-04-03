@@ -16,8 +16,21 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 
-    // Output all jar tasks (including sources, dev, shadow) to the root directory
-    tasks.withType(Jar).configureEach {
-        destinationDirectory.set(file("$rootDir/build/libs"))
-    }
 }
+
+tasks.register('copyArtifacts', Copy) {
+    dependsOn subprojects.collect { it.path + ':build' }
+    
+    doFirst {
+        delete layout.buildDirectory.dir('libs')
+    }
+
+    from project(':paper').layout.buildDirectory.dir('libs')
+    from project(':fabric').layout.buildDirectory.dir('libs')
+    include "*-Paper.jar"
+    include "*-Fabric.jar"
+    into layout.buildDirectory.dir('libs')
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+build.finalizedBy(copyArtifacts)

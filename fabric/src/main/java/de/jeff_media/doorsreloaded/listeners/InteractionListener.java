@@ -1,7 +1,9 @@
 package de.jeff_media.doorsreloaded.listeners;
 
 import de.jeff_media.doorsreloaded.config.ModConfig;
+import de.jeff_media.doorsreloaded.config.ModConfig;
 import de.jeff_media.doorsreloaded.utils.DoorUtils;
+import de.jeff_media.doorsreloaded.DoorsReloadedMod;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.BlockState;
@@ -16,7 +18,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -110,14 +112,34 @@ public class InteractionListener {
             boolean isTrapDoor = DoorUtils.isTrapDoor(state);
             boolean isGate = DoorUtils.isGate(state);
 
-            if (!isDoor && !isTrapDoor && !isGate) return ActionResult.PASS;
-            if (isDoor && !config.allow_knocking_doors) return ActionResult.PASS;
-            if (isTrapDoor && !config.allow_knocking_trapdoors) return ActionResult.PASS;
-            if (isGate && !config.allow_knocking_gates) return ActionResult.PASS;
+            if (!isDoor && !isTrapDoor && !isGate) {
+                DoorsReloadedMod.debug("Block is not a door, trapdoor, or gate.");
+                return ActionResult.PASS;
+            }
+            if (isDoor && !config.allow_knocking_doors) {
+                DoorsReloadedMod.debug("Knocking doors is disabled.");
+                return ActionResult.PASS;
+            }
+            if (isTrapDoor && !config.allow_knocking_trapdoors) {
+                DoorsReloadedMod.debug("Knocking trapdoors is disabled.");
+                return ActionResult.PASS;
+            }
+            if (isGate && !config.allow_knocking_gates) {
+                DoorsReloadedMod.debug("Knocking gates is disabled.");
+                return ActionResult.PASS;
+            }
 
             // Checks
-            if (config.knocking_requires_shift && !player.isSneaking()) return ActionResult.PASS;
-            if (config.knocking_requires_empty_hand && !player.getMainHandStack().isEmpty()) return ActionResult.PASS;
+            if (config.knocking_requires_shift && !player.isSneaking()) {
+                DoorsReloadedMod.debug("Player is not sneaking.");
+                return ActionResult.PASS;
+            }
+            if (config.knocking_requires_empty_hand && !player.getMainHandStack().isEmpty()) {
+                DoorsReloadedMod.debug("Player hand is not empty.");
+                return ActionResult.PASS;
+            }
+
+            DoorsReloadedMod.debug("Player " + player.getName().getString() + " knocked on " + state.getBlock().getTranslationKey());
 
             // Play Sound
             String soundStr;
@@ -139,7 +161,7 @@ public class InteractionListener {
                 else soundStr = config.sound_knock_gate_wood;
             }
             
-            Identifier soundId = Identifier.tryParse(soundStr);
+            ResourceLocation soundId = ResourceLocation.tryParse(soundStr);
             SoundEvent sound = null;
             if (soundId != null) {
                 sound = Registries.SOUND_EVENT.get(soundId);

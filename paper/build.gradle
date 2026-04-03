@@ -4,7 +4,11 @@ plugins {
 }
 
 base {
-    archivesName = 'DoorsReloaded-Paper'
+    archivesName = "DoorsReloaded-${project.version}-Paper"
+}
+
+tasks.withType(Jar).configureEach {
+    archiveVersion.set("")
 }
 
 repositories {

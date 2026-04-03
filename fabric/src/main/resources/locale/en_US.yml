@@ -1,0 +1,11 @@
+messages:
+  prefix: "<yellow>[DoorsReloaded]</yellow> "
+  command:
+    no_permission: "{prefix}<red>You don't have permission to do that.</red>"
+    usage: "{prefix}<red>Usage: /doorsreloaded &lt;reload|version&gt;</red>"
+    unknown_argument: "{prefix}<red>Unknown argument. Usage: /doorsreloaded &lt;reload|version&gt;</red>"
+    reload_success: "{prefix}<green>DoorsReloaded configuration and locales have been reloaded.</green>"
+    version: "{prefix}<aqua>DoorsReloaded version: </aqua><white>{version}</white>"
+    doorsreloaded_help: "{prefix}<yellow>DoorsReloaded Commands:</yellow><newline><gray> - </gray><aqua>/dr reload</aqua><gray> : Reloads configuration and locales.</gray><newline><gray> - </gray><aqua>/dr version</aqua><gray> : Displays current version.</gray>"
+  update:
+    available_admin: "{prefix}<white>A new version is available: </white><green>{latest}</green><newline>{prefix}<white>Download at: </white><blue>{url}</blue>"

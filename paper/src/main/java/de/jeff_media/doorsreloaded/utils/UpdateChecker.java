@@ -24,11 +24,12 @@ public class UpdateChecker implements Listener {
     private static boolean updateAvailable = false;
 
     public static void checkForUpdates() {
-        if (!Main.getInstance().getConfig().getBoolean("check-for-updates", true)) {
+        if (!Main.getInstance().getConfig().getBoolean("updates.enabled", true) && 
+            !Main.getInstance().getConfig().getBoolean("check-for-updates", true)) { // Fallback for legacy configs
             return;
         }
 
-        CompletableFuture.runAsync(() -> {
+        Runnable task = () -> {
             try {
                 String currentVersion = Main.getInstance().getDescription().getVersion();
                 String response = fetchVersions();
@@ -38,20 +39,35 @@ public class UpdateChecker implements Listener {
                     
                     if (latestVersion != null && isNewerVersion(latestVersion, currentVersion)) {
                         updateAvailable = true;
-                        Main.getInstance().getLogger().warning("A new version of DoorsReloaded is available!");
-                        Main.getInstance().getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
-                        Main.getInstance().getLogger().warning("Download at: https://modrinth.com/plugin/doorsreloaded");
+                        if (Main.getInstance().getConfig().getBoolean("updates.notify_console", true)) {
+                            Main.getInstance().getLogger().warning("A new version of DoorsReloaded is available!");
+                            Main.getInstance().getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
+                            Main.getInstance().getLogger().warning("Download at: https://modrinth.com/plugin/doorsreloaded");
+                        }
                         
                         // Register listener for OP notifications
                         Bukkit.getPluginManager().registerEvents(new UpdateChecker(), Main.getInstance());
-                    } else {
+                    } else if (Main.getInstance().getConfig().getBoolean("updates.notify_console", true) 
+                            && Main.getInstance().getConfig().getBoolean("debug", false)) {
                         Main.getInstance().getLogger().info("DoorsReloaded is up to date (v" + currentVersion + ")");
                     }
                 }
             } catch (Exception e) {
-                Main.getInstance().getLogger().warning("Could not check for updates: " + e.getMessage());
+                if (Main.getInstance().getConfig().getBoolean("updates.notify_console", true)) {
+                    Main.getInstance().getLogger().warning("Could not check for updates: " + e.getMessage());
+                }
             }
-        });
+        };
+
+        if (Main.getInstance().getConfig().getBoolean("updates.check_on_startup", true)) {
+            Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), task);
+        }
+
+        double intervalHours = Main.getInstance().getConfig().getDouble("updates.check_interval_hours", 24.0);
+        if (intervalHours > 0) {
+            long delayTicks = (long) (intervalHours * 60 * 60 * 20); // ticks
+            Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getInstance(), task, delayTicks, delayTicks);
+        }
     }
 
     private static String fetchVersions() {
@@ -112,10 +128,14 @@ public class UpdateChecker implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (updateAvailable && player.hasPermission("doorsreloaded.notify.update")) {
+        if (updateAvailable 
+            && Main.getInstance().getConfig().getBoolean("updates.notify_admins_on_join", true)
+            && player.hasPermission("doorsreloaded.notify.update")) {
             Main.getInstance().getScheduler().runLater(() -> {
-                player.sendMessage("§e[DoorsReloaded] §fA new version is available: §a" + latestVersion);
-                player.sendMessage("§e[DoorsReloaded] §fDownload at: §bhttps://modrinth.com/plugin/doorsreloaded");
+                java.util.Map<String, String> map = new java.util.HashMap<>();
+                map.put("latest", latestVersion);
+                map.put("url", "https://modrinth.com/plugin/doorsreloaded");
+                player.sendMessage(Main.getInstance().getLocaleManager().get(player, "messages.update.available_admin", map));
             }, 40L);
         }
     }

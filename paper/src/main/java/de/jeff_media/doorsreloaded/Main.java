@@ -37,16 +37,21 @@ public class Main extends JavaPlugin {
     private boolean foliaEnvironment;
     private boolean redstoneEnabled;
 
+    private de.jeff_media.doorsreloaded.locale.LocaleManager localeManager;
+
+    public de.jeff_media.doorsreloaded.locale.LocaleManager getLocaleManager() {
+        return localeManager;
+    }
+
     public static Main getInstance() {
         return instance;
     }
 
     public void debug(String text) {
         if (getConfig().getBoolean(Config.DEBUG)) {
-            getLogger().warning("[DEBUG] " + text);
+            getLogger().info("[DEBUG] " + text);
         }
     }
-
 
     public Door getBottomDoor(Door door, Block block) {
 
@@ -63,7 +68,6 @@ public class Main extends JavaPlugin {
 
         return null; // Door is not matching
     }
-
 
     public Block getOtherPart(Door door, Block block) {
         if(door == null) return null;
@@ -101,6 +105,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        localeManager = new de.jeff_media.doorsreloaded.locale.LocaleManager(this);
+        localeManager.reload();
+        
         foliaEnvironment = detectFoliaEnvironment();
         scheduler = foliaEnvironment ? new FoliaPluginScheduler(this) : new PaperPluginScheduler(this);
         getLogger().info(foliaEnvironment ? "Detected Folia environment; using region-aware scheduler." : "Using Paper/Purpur scheduler.");

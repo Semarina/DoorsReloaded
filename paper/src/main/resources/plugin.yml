@@ -12,8 +12,9 @@ load: POSTWORLD
 folia-supported: true
 commands:
   doorsreloaded:
-    description: Reloads the configuration
+    description: DoorsReloaded administrative commands
     permission: doorsreloaded.reload
+    aliases: [dr]
     usage: /<command>
 permissions:
   doorsreloaded.doubledoors:

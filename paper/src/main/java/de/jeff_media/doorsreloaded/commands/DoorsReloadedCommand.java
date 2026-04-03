@@ -24,18 +24,19 @@ public class DoorsReloadedCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "Usage: /doorsreloaded <reload|version>");
+        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+            sender.sendMessage(main.getLocaleManager().get(sender, "messages.command.doorsreloaded_help"));
             return true;
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission(Permissions.RELOAD)) {
-                sender.sendMessage(command.getPermissionMessage());
+                sender.sendMessage(main.getLocaleManager().get(sender, "messages.command.no_permission"));
                 return true;
             }
 
             main.reload();
+            main.getLocaleManager().reload();
 
             if (Main.getInstance().isDebug()) {
                 for (String key : main.getConfig().getKeys(true)) {
@@ -43,16 +44,18 @@ public class DoorsReloadedCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            sender.sendMessage(ChatColor.GREEN + "DoorsReloaded configuration has been reloaded.");
+            sender.sendMessage(main.getLocaleManager().get(sender, "messages.command.reload_success"));
             return true;
         }
 
         if (args[0].equalsIgnoreCase("version")) {
-            sender.sendMessage(ChatColor.AQUA + "DoorsReloaded version: " + ChatColor.WHITE + main.getDescription().getVersion());
+            java.util.Map<String, String> map = new java.util.HashMap<>();
+            map.put("version", main.getDescription().getVersion());
+            sender.sendMessage(main.getLocaleManager().get(sender, "messages.command.version", map));
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Unknown argument. Usage: /doorsreloaded <reload|version>");
+        sender.sendMessage(main.getLocaleManager().get(sender, "messages.command.unknown_argument"));
         return true;
     }
 

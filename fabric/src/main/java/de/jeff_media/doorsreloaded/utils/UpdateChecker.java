@@ -8,7 +8,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,38 +19,69 @@ public class UpdateChecker {
     private static final String MODRINTH_API_URL = "https://api.modrinth.com/v2/project/doorsreloaded/version";
     private static final String USER_AGENT = "DoorsReloaded-UpdateChecker";
 
-    public static void checkForUpdates() {
-        if (!ModConfig.getInstance().check_for_updates) {
-            return;
-        }
+    public volatile boolean updateAvailable = false;
+    public volatile String latestVersionString = "";
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                String currentVersion = FabricLoader.getInstance()
-                        .getModContainer(DoorsReloadedMod.MOD_ID)
-                        .map(container -> container.getMetadata().getVersion().getFriendlyString())
-                        .orElse("unknown");
+    private final ScheduledExecutorService scheduler;
 
-                String response = fetchVersions();
-                
-                if (response != null) {
-                    String latestVersion = parseLatestVersion(response);
-                    
-                    if (latestVersion != null && isNewerVersion(latestVersion, currentVersion)) {
-                        DoorsReloadedMod.LOGGER.warn("A new version of DoorsReloaded is available!");
-                        DoorsReloadedMod.LOGGER.warn("Current: {} | Latest: {}", currentVersion, latestVersion);
-                        DoorsReloadedMod.LOGGER.warn("Download at: https://modrinth.com/plugin/doorsreloaded");
-                    } else {
-                        DoorsReloadedMod.LOGGER.info("DoorsReloaded is up to date (v{})", currentVersion);
-                    }
-                }
-            } catch (Exception e) {
-                DoorsReloadedMod.LOGGER.warn("Could not check for updates: {}", e.getMessage());
-            }
+    public UpdateChecker() {
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "DoorsReloaded-UpdateChecker");
+            t.setDaemon(true);
+            return t;
         });
     }
 
-    private static String fetchVersions() {
+    public void start() {
+        if (!ModConfig.getInstance().updates.enabled) return;
+
+        if (ModConfig.getInstance().updates.check_on_startup) {
+            scheduler.execute(this::runCheck);
+        }
+
+        double intervalHours = ModConfig.getInstance().updates.check_interval_hours;
+        if (intervalHours > 0) {
+            long delay = (long) (intervalHours * 60 * 60);
+            scheduler.scheduleAtFixedRate(this::runCheck, delay, delay, TimeUnit.SECONDS);
+        }
+    }
+
+    public void shutdown() {
+        scheduler.shutdownNow();
+    }
+
+    private void runCheck() {
+        try {
+            String currentVersion = FabricLoader.getInstance()
+                    .getModContainer(DoorsReloadedMod.MOD_ID)
+                    .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                    .orElse("unknown");
+
+            String response = fetchVersions();
+            
+            if (response != null) {
+                String latestVersion = parseLatestVersion(response);
+                
+                if (latestVersion != null && isNewerVersion(latestVersion, currentVersion)) {
+                    updateAvailable = true;
+                    latestVersionString = latestVersion;
+                    if (ModConfig.getInstance().updates.notify_console) {
+                        DoorsReloadedMod.LOGGER.warn("A new version of DoorsReloaded is available!");
+                        DoorsReloadedMod.LOGGER.warn("Current: {} | Latest: {}", currentVersion, latestVersion);
+                        DoorsReloadedMod.LOGGER.warn("Download at: https://modrinth.com/plugin/doorsreloaded");
+                    }
+                } else if (ModConfig.getInstance().updates.notify_console && ModConfig.getInstance().debug) {
+                    DoorsReloadedMod.LOGGER.info("DoorsReloaded is up to date (v{})", currentVersion);
+                }
+            }
+        } catch (Exception e) {
+            if (ModConfig.getInstance().updates.notify_console) {
+                DoorsReloadedMod.LOGGER.warn("Could not check for updates: {}", e.getMessage());
+            }
+        }
+    }
+
+    private String fetchVersions() {
         try {
             URL url = new URL(MODRINTH_API_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -68,15 +101,14 @@ public class UpdateChecker {
                 return response.toString();
             }
         } catch (Exception e) {
-            if (ModConfig.getInstance().debug) {
+            if (ModConfig.getInstance().debug && ModConfig.getInstance().updates.notify_console) {
                 DoorsReloadedMod.LOGGER.warn("Failed to fetch versions: {}", e.getMessage());
             }
         }
         return null;
     }
 
-    private static String parseLatestVersion(String jsonResponse) {
-        // Simple JSON parsing to get first version_number
+    private String parseLatestVersion(String jsonResponse) {
         Pattern pattern = Pattern.compile("\"version_number\"\\s*:\\s*\"([^\"]+)\"");
         Matcher matcher = pattern.matcher(jsonResponse);
         if (matcher.find()) {
@@ -85,7 +117,7 @@ public class UpdateChecker {
         return null;
     }
 
-    private static boolean isNewerVersion(String latest, String current) {
+    private boolean isNewerVersion(String latest, String current) {
         try {
             String[] latestParts = latest.split("\\.");
             String[] currentParts = current.split("\\.");
@@ -99,7 +131,6 @@ public class UpdateChecker {
                 if (latestPart < currentPart) return false;
             }
         } catch (NumberFormatException e) {
-            // If version parsing fails, compare as strings
             return !latest.equals(current);
         }
         return false;

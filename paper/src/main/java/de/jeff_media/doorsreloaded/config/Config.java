@@ -62,6 +62,13 @@ public class Config {
         conf.addDefault(KNOCKING_REQUIRES_SHIFT, false);
         conf.addDefault(DEBUG, false);
         conf.addDefault(AUTO_CLOSE, 0);
+        
+        // Update checker options
+        conf.addDefault("updates.enabled", true);
+        conf.addDefault("updates.check_on_startup", true);
+        conf.addDefault("updates.check_interval_hours", 24.0);
+        conf.addDefault("updates.notify_console", true);
+        conf.addDefault("updates.notify_admins_on_join", true);
 
         boolean oldIronDoors = conf.getBoolean("allow-opening-irondoors-with-hands", false);
         conf.addDefault(ALLOW_IRONDOORS, oldIronDoors);
