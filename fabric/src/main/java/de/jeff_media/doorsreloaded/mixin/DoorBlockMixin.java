@@ -2,7 +2,6 @@ package de.jeff_media.doorsreloaded.mixin;
 
 import de.jeff_media.doorsreloaded.config.ModConfig;
 import de.jeff_media.doorsreloaded.utils.DoorUtils;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.DoorBlock;
@@ -15,12 +14,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(BlockBehaviour.class)
+@Mixin(DoorBlock.class)
 public class DoorBlockMixin {
 
-    @Inject(method = "neighborUpdate", at = @At("RETURN"))
+    @Inject(method = "neighborChanged", at = @At("RETURN"))
     public void onNeighborUpdate(BlockState state, Level world, BlockPos pos, Block sourceBlock, Orientation wireOrientation, boolean notify, CallbackInfo ci) {
-        if (!((Object)this instanceof DoorBlock)) return;
         if (!ModConfig.getInstance().check_for_redstone) return;
         if (world.isClientSide()) return;
 
