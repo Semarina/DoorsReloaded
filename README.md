@@ -7,35 +7,39 @@ Modern door quality-of-life plugin/mod for Minecraft servers.
 
 ## Features
 
-- 🚪 **Double Doors** - Open both doors with a single click
-- 🔔 **Knocking** - Left-click to elegantly knock on standard Doors, Trapdoors, and Fence Gates. Configurable independently for each!
-- 🔐 **Access Control** - Permission-based manipulation of Iron Doors and Iron Trapdoors, configured individually.
-- ⏱️ **Auto-Close** - Configurable automatic closing delays.
-- 🔄 **Redstone Sync** - Double doors natively sync with redstone signals.
+- Double Doors - Open both doors with a single click.
+- Knocking - Left-click to knock on doors, trapdoors, and fence gates, with separate configuration controls.
+- Access Control - Permission-based manipulation of iron doors and iron trapdoors.
+- Auto-Close - Configurable automatic closing delays.
+- Redstone Sync - Double doors can sync with redstone signals.
 
 ## Supported Platforms
 
 | Platform | Minecraft Version | Status |
 |----------|-------------------|--------|
-| Paper | 1.21+ | ✅ Supported |
-| Purpur | 1.21+ | ✅ Supported |
-| Folia | 1.21+ | ✅ Supported (region-aware) |
-| Fabric | 1.21.11 | ✅ Supported |
-| Quilt | 1.21.11 | ✅ Supported |
-| Spigot/Bukkit | - | ❌ Not supported |
+| Paper | 26.1.x | Supported |
+| Purpur | 26.1.x | Supported |
+| Folia | 26.1.x | Supported (region-aware) |
+| Fabric | 26.1.x | Supported |
+| Quilt | 26.1.x | Supported |
+| Spigot/Bukkit | - | Not supported |
+
+Java 25 or newer is required.
 
 ## Installation
 
 ### Paper/Purpur/Folia
-1. Download `DoorsReloaded-2.2.0-Paper.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
-2. Place in your server's `plugins/` folder
-3. Restart the server
+
+1. Download `DoorsReloaded-2.3.0-Paper.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded).
+2. Place it in your server's `plugins/` folder.
+3. Restart the server.
 
 ### Fabric/Quilt
-1. Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api)
-2. Download `DoorsReloaded-2.2.0-Fabric.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded)
-3. Place in your `mods/` folder
-4. Launch the game
+
+1. Install [Fabric Loader](https://fabricmc.net/) and [Fabric API](https://modrinth.com/mod/fabric-api).
+2. Download `DoorsReloaded-2.3.0-Fabric.jar` from [Modrinth](https://modrinth.com/plugin/doorsreloaded).
+3. Place it in your `mods/` folder.
+4. Launch the game.
 
 ## Permissions
 
@@ -52,12 +56,13 @@ Modern door quality-of-life plugin/mod for Minecraft servers.
 DoorsReloaded uses Gradle. To build both platform jars:
 
 ```bash
-./gradlew universalJar
+./gradlew build
 ```
 
-Output jars are located in `build/libs/`:
-- `DoorsReloaded-2.2.0-Paper.jar` - For Paper/Purpur/Folia
-- `DoorsReloaded-2.2.0-Fabric.jar` - For Fabric/Quilt
+The root build runs `copyArtifacts` after the subprojects build. Output jars are located in `build/libs/`:
+
+- `DoorsReloaded-2.3.0-Paper.jar` - For Paper/Purpur/Folia.
+- `DoorsReloaded-2.3.0-Fabric.jar` - For Fabric/Quilt.
 
 ## Credits
 

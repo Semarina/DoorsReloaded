@@ -6,29 +6,29 @@ import de.jeff_media.doorsreloaded.utils.DoorUtils;
 import de.jeff_media.doorsreloaded.DoorsReloadedMod;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.block.TrapdoorBlock;
-import net.minecraft.block.enums.DoorHinge;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public class InteractionListener {
 
     public static void register() {
         // Right Click (Use)
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
-            if (world.isClient()) return ActionResult.PASS;
+            if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+            if (world.isClientSide()) return InteractionResult.PASS;
 
             BlockPos pos = hitResult.getBlockPos();
             BlockState state = world.getBlockState(pos);
@@ -41,8 +41,8 @@ public class InteractionListener {
             // Check for Iron material using Blocks comparison or Tags if available, assuming Iron Door is the main one.
             // In 1.21, we can check block instance or tags.
             // Iron Door and Iron Trapdoor are specific blocks.
-            boolean isIronDoor = state.isOf(Blocks.IRON_DOOR); 
-            boolean isIronTrapdoor = state.isOf(Blocks.IRON_TRAPDOOR);
+            boolean isIronDoor = state.is(Blocks.IRON_DOOR);
+            boolean isIronTrapdoor = state.is(Blocks.IRON_TRAPDOOR);
             // Or copper doors if we want to include them as "metal" that requires power? 
             // Copper doors in 1.21 can be opened by hand (unlike iron). Iron is the only one defaulting to locked.
             // So we strictly stick to IRON_DOOR and IRON_TRAPDOOR for the "allow opening with hands" feature if strictly following original plugin.
@@ -51,33 +51,33 @@ public class InteractionListener {
             if (isIronDoor || isIronTrapdoor) {
                 if ((isIronDoor && config.allow_opening_irondoors_with_hands) || (isIronTrapdoor && config.allow_opening_irontrapdoors_with_hands)) {
                     boolean isOpen = false;
-                    if (isIronDoor) isOpen = state.get(DoorBlock.OPEN);
-                    else isOpen = state.get(TrapdoorBlock.OPEN);
+                    if (isIronDoor) isOpen = state.getValue(DoorBlock.OPEN);
+                    else isOpen = state.getValue(TrapDoorBlock.OPEN);
                     
                     // Toggle
                     boolean newOpen = !isOpen;
                     BlockState newState;
                     
                     if (isIronDoor) {
-                        newState = state.with(DoorBlock.OPEN, newOpen);
-                        world.setBlockState(pos, newState, 10);
-                        world.playSound(null, pos, newOpen ? SoundEvents.BLOCK_IRON_DOOR_OPEN : SoundEvents.BLOCK_IRON_DOOR_CLOSE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+                        newState = state.setValue(DoorBlock.OPEN, newOpen);
+                        world.setBlock(pos, newState, 10);
+                        world.playSound(null, pos, newOpen ? SoundEvents.IRON_DOOR_OPEN : SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 1.0f);
                         if (newOpen) {
-                            de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.world.ServerWorld) world, pos);
+                            de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.level.ServerLevel) world, pos);
                         }
                         if (config.allow_doubledoors) {
                             handleDoubleDoor(world, pos, state, newOpen);
                         }
                     } else {
-                        newState = state.with(TrapdoorBlock.OPEN, newOpen);
-                        world.setBlockState(pos, newState, 10);
-                        world.playSound(null, pos, newOpen ? SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+                        newState = state.setValue(TrapDoorBlock.OPEN, newOpen);
+                        world.setBlock(pos, newState, 10);
+                        world.playSound(null, pos, newOpen ? SoundEvents.IRON_TRAPDOOR_OPEN : SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 1.0f);
                         if (newOpen) {
-                             de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.world.ServerWorld) world, pos);
+                             de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.level.ServerLevel) world, pos);
                         }
                     }
 
-                    return ActionResult.SUCCESS; // Intercepted and handled
+                    return InteractionResult.SUCCESS; // Intercepted and handled
                 }
             }
 
@@ -86,24 +86,24 @@ public class InteractionListener {
                  // Predict the new state: Vanilla toggles it.
                  // NOTE: UseBlockCallback happens BEFORE vanilla logic.
                  // If we assume vanilla toggles, we need to apply the toggle to the neighbor.
-                 boolean currentOpen = state.get(DoorBlock.OPEN);
+                 boolean currentOpen = state.getValue(DoorBlock.OPEN);
                  boolean newOpen = !currentOpen;
                  
                  handleDoubleDoor(world, pos, state, newOpen);
                  if (newOpen) {
-                      de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.world.ServerWorld) world, pos);
+                      de.jeff_media.doorsreloaded.scheduler.DoorScheduler.scheduleAutoClose((net.minecraft.server.level.ServerLevel) world, pos);
                  }
                  // We return PASS so vanilla toggles the clicked door
-                 return ActionResult.PASS;
+                 return InteractionResult.PASS;
             }
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         // Left Click (Attack) - Knocking
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            if (hand != Hand.MAIN_HAND) return ActionResult.PASS;
-            if (world.isClient()) return ActionResult.PASS;
+            if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+            if (world.isClientSide()) return InteractionResult.PASS;
             
             BlockState state = world.getBlockState(pos);
             ModConfig config = ModConfig.getInstance();
@@ -114,38 +114,38 @@ public class InteractionListener {
 
             if (!isDoor && !isTrapDoor && !isGate) {
                 DoorsReloadedMod.debug("Block is not a door, trapdoor, or gate.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
             if (isDoor && !config.allow_knocking_doors) {
                 DoorsReloadedMod.debug("Knocking doors is disabled.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
             if (isTrapDoor && !config.allow_knocking_trapdoors) {
                 DoorsReloadedMod.debug("Knocking trapdoors is disabled.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
             if (isGate && !config.allow_knocking_gates) {
                 DoorsReloadedMod.debug("Knocking gates is disabled.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
 
             // Checks
-            if (config.knocking_requires_shift && !player.isSneaking()) {
+            if (config.knocking_requires_shift && !player.isCrouching()) {
                 DoorsReloadedMod.debug("Player is not sneaking.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
-            if (config.knocking_requires_empty_hand && !player.getMainHandStack().isEmpty()) {
+            if (config.knocking_requires_empty_hand && !player.getMainHandItem().isEmpty()) {
                 DoorsReloadedMod.debug("Player hand is not empty.");
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
 
-            DoorsReloadedMod.debug("Player " + player.getName().getString() + " knocked on " + state.getBlock().getTranslationKey());
+            DoorsReloadedMod.debug("Player " + player.getName().getString() + " knocked on " + state.getBlock().getDescriptionId());
 
             // Play Sound
             String soundStr;
-            String name = state.getBlock().getTranslationKey().toLowerCase();
+            String name = state.getBlock().getDescriptionId().toLowerCase();
             boolean isCopper = name.contains("copper");
-            boolean isIron = name.contains("iron") || state.isOf(Blocks.IRON_DOOR) || state.isOf(Blocks.IRON_TRAPDOOR);
+            boolean isIron = name.contains("iron") || state.is(Blocks.IRON_DOOR) || state.is(Blocks.IRON_TRAPDOOR);
 
             if (isDoor) {
                 if (isCopper) soundStr = config.sound_knock_door_copper;
@@ -161,30 +161,30 @@ public class InteractionListener {
                 else soundStr = config.sound_knock_gate_wood;
             }
             
-            ResourceLocation soundId = ResourceLocation.tryParse(soundStr);
+            Identifier soundId = Identifier.tryParse(soundStr);
             SoundEvent sound = null;
             if (soundId != null) {
-                sound = Registries.SOUND_EVENT.get(soundId);
+                sound = BuiltInRegistries.SOUND_EVENT.get(soundId).map(h -> h.value()).orElse(null);
             }
-            if (sound == null) sound = SoundEvents.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR; // Fallback
+            if (sound == null) sound = SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR; // Fallback
 
-            SoundCategory category = SoundCategory.BLOCKS;
+            SoundSource category = SoundSource.BLOCKS;
             try {
-                category = SoundCategory.valueOf(config.sound_knock_category);
+                category = SoundSource.valueOf(config.sound_knock_category);
             } catch (IllegalArgumentException ignored) {}
 
             world.playSound(null, pos, sound, category, (float)config.sound_knock_volume, (float)config.sound_knock_pitch);
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
     }
 
-    private static void handleDoubleDoor(World world, BlockPos pos, BlockState state, boolean newOpenState) {
+    private static void handleDoubleDoor(Level world, BlockPos pos, BlockState state, boolean newOpenState) {
         BlockPos neighborPos = DoorUtils.getDoubleDoorNeighbor(world, pos, state);
         if (neighborPos != null) {
             BlockState neighborState = world.getBlockState(neighborPos);
-            if (neighborState.get(DoorBlock.OPEN) != newOpenState) {
-                world.setBlockState(neighborPos, neighborState.with(DoorBlock.OPEN, newOpenState), 10);
+            if (neighborState.getValue(DoorBlock.OPEN) != newOpenState) {
+                world.setBlock(neighborPos, neighborState.setValue(DoorBlock.OPEN, newOpenState), 10);
                 // We should also play sound/event? Vanilla usually plays sound for the clicked door.
                 // We manually play sound for the other door?
                 // Usually double doors sound better if only one sound plays or both.

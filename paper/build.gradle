@@ -17,10 +17,7 @@ repositories {
 }
 
 dependencies {
-    // Attempt to use the property, but fallback or adjust if 1.21.11 doesn't exist in repo
-    def mcVersion = project.properties['minecraft_version']
-    // Paper versioning often appends -R0.1-SNAPSHOT
-    compileOnly "io.papermc.paper:paper-api:${mcVersion}-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:${project.paper_api_version}"
 }
 
 processResources {

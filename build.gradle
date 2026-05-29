@@ -4,7 +4,7 @@ plugins {
 
 subprojects {
     group = 'de.jeff_media'
-    version = properties['mod_version'] ?: '2.2.0'
+    version = properties['mod_version'] ?: '2.3.0'
 
     repositories {
         mavenCentral()
@@ -12,7 +12,7 @@ subprojects {
     
     // Common settings
     tasks.withType(JavaCompile).configureEach {
-        options.release.set(21)
+        options.release.set(25)
         options.encoding = 'UTF-8'
     }
 

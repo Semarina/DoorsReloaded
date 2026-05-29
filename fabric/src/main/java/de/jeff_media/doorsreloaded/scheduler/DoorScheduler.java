@@ -3,14 +3,14 @@ package de.jeff_media.doorsreloaded.scheduler;
 import de.jeff_media.doorsreloaded.config.ModConfig;
 import de.jeff_media.doorsreloaded.utils.DoorUtils;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.block.TrapdoorBlock;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class DoorScheduler {
                 Map.Entry<GlobalPos, Long> entry = iterator.next();
                 if (currentTime >= entry.getValue()) {
                     GlobalPos globalPos = entry.getKey();
-                    ServerWorld world = server.getWorld(globalPos.dimension());
+                    ServerLevel world = server.getLevel(globalPos.dimension());
                     if (world != null) {
                         try {
                             closeDoor(world, globalPos.pos());
@@ -43,46 +43,46 @@ public class DoorScheduler {
         });
     }
 
-    public static void scheduleAutoClose(ServerWorld world, BlockPos pos) {
+    public static void scheduleAutoClose(ServerLevel world, BlockPos pos) {
         long delaySeconds = ModConfig.getInstance().autoclose;
         if (delaySeconds <= 0) return;
 
-        GlobalPos globalPos = GlobalPos.create(world.getRegistryKey(), pos);
+        GlobalPos globalPos = GlobalPos.of(world.dimension(), pos);
         scheduledClosures.put(globalPos, System.currentTimeMillis() + (delaySeconds * 1000L));
     }
 
-    private static void closeDoor(ServerWorld world, BlockPos pos) {
+    private static void closeDoor(ServerLevel world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         if (!DoorUtils.isDoor(state) && !DoorUtils.isTrapDoor(state)) return;
 
         boolean isOpen;
         if (DoorUtils.isDoor(state)) {
-            isOpen = state.get(DoorBlock.OPEN);
+            isOpen = state.getValue(DoorBlock.OPEN);
         } else {
-            isOpen = state.get(TrapdoorBlock.OPEN);
+            isOpen = state.getValue(TrapDoorBlock.OPEN);
         }
 
         if (isOpen) {
             // Close it
             if (DoorUtils.isDoor(state)) {
-                world.setBlockState(pos, state.with(DoorBlock.OPEN, false), 10);
-                world.playSound(null, pos, SoundEvents.BLOCK_IRON_DOOR_CLOSE, SoundCategory.BLOCKS, 1.0f, 1.0f); // Default sound
+                world.setBlock(pos, state.setValue(DoorBlock.OPEN, false), 10);
+                world.playSound(null, pos, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 1.0f); // Default sound
                 
                 // Double door check
                 if (ModConfig.getInstance().allow_doubledoors) {
                     BlockPos otherPos = DoorUtils.getOtherDoorPart(world, pos, state);
                     if (otherPos != null) {
                         BlockState otherState = world.getBlockState(otherPos);
-                        if (otherState.get(DoorBlock.OPEN)) {
-                             world.setBlockState(otherPos, otherState.with(DoorBlock.OPEN, false), 10);
+                        if (otherState.getValue(DoorBlock.OPEN)) {
+                             world.setBlock(otherPos, otherState.setValue(DoorBlock.OPEN, false), 10);
                              // Remove other door from schedule if present to avoid double close sound/logic
-                             scheduledClosures.remove(GlobalPos.create(world.getRegistryKey(), otherPos));
+                             scheduledClosures.remove(GlobalPos.of(world.dimension(), otherPos));
                         }
                     }
                 }
             } else {
-                 world.setBlockState(pos, state.with(TrapdoorBlock.OPEN, false), 10);
-                 world.playSound(null, pos, SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.0f, 1.0f);
+                 world.setBlock(pos, state.setValue(TrapDoorBlock.OPEN, false), 10);
+                 world.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0f, 1.0f);
             }
         }
     }

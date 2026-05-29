@@ -1,9 +1,9 @@
 main: ${plugin.main}
 name: ${project.name}
 version: ${project.version}
-description: "Lightweight, modern door behavior optimized for Paper, Purpur, and Folia 1.21+"
+description: "Lightweight, modern door behavior optimized for Paper, Purpur, and Folia 26.1.x"
 prefix: ${plugin.prefix}
-api-version: "1.21"
+api-version: "26.1"
 authors:
   - mfnalex
   - JEFF Media GbR

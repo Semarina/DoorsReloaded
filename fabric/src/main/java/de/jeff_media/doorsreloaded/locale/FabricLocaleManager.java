@@ -158,7 +158,7 @@ public class FabricLocaleManager {
         return message;
     }
 
-    public static net.minecraft.text.Text getText(net.minecraft.registry.RegistryWrapper.WrapperLookup registryManager, String localeCode, String path, Map<String, String> placeholders) {
+    public static net.minecraft.network.chat.Component getText(net.minecraft.core.HolderLookup.Provider registryManager, String localeCode, String path, Map<String, String> placeholders) {
         String msg = get(localeCode, path, placeholders);
         // We do not have kyori adventure available by default natively in this mod, so we use string replaces for basic formatting.
         String parsed = msg.replaceAll("<(?i)(black|dark_blue|dark_green|dark_aqua|dark_red|dark_purple|gold|gray|dark_gray|blue|green|aqua|red|light_purple|yellow|white)>", "§$1")
@@ -167,10 +167,10 @@ public class FabricLocaleManager {
                 .replace("§dark_gray", "§8").replace("§blue", "§9").replace("§green", "§a").replace("§aqua", "§b")
                 .replace("§red", "§c").replace("§light_purple", "§d").replace("§yellow", "§e").replace("§white", "§f")
                 .replace("<newline>", "\n").replaceAll("</[^>]+>", "§r");
-        return net.minecraft.text.Text.literal(parsed); // The client will format standard paragraph characters natively
+        return net.minecraft.network.chat.Component.literal(parsed); // The client will format standard paragraph characters natively
     }
 
-    public static net.minecraft.text.Text getText(net.minecraft.registry.RegistryWrapper.WrapperLookup registryManager, String localeCode, String path) {
+    public static net.minecraft.network.chat.Component getText(net.minecraft.core.HolderLookup.Provider registryManager, String localeCode, String path) {
         return getText(registryManager, localeCode, path, Collections.emptyMap());
     }
 }
